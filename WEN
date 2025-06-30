@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Porky Penguins Tap to Earn</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+      background-size: cover;
+      background-position: center;
+      color: white;
+      text-shadow: 1px 1px 2px black;
+      user-select: none;
+    }
+    h1 {
+      margin-bottom: 10px;
+    }
+    #character {
+      width: 250px;
+      height: auto;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.2s ease;
+      margin: 10px auto;
+      display: block;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+    }
+    .bounce {
+      animation: bounce 0.3s ease;
+    }
+    #tap-button {
+      margin-top: 20px;
+      padding: 12px 30px;
+      font-size: 20px;
+      cursor: pointer;
+      border: none;
+      background-color: #4caf50;
+      color: white;
+      border-radius: 8px;
+      user-select: none;
+    }
+    #counter, #nickname-display {
+      margin-top: 15px;
+      font-size: 22px;
+      font-weight: bold;
+    }
+    #leaderboard {
+      margin-top: 30px;
+      max-width: 300px;
+      margin-left: auto;
+      margin-right: auto;
+      background: rgba(0,0,0,0.4);
+      border-radius: 8px;
+      padding: 10px;
+    }
+    #leaderboard h2 {
+      margin-bottom: 10px;
+    }
+    #leaderboard ol {
+      padding-left: 20px;
+      text-align: left;
+      color: #ffd700;
+    }
+    input#nickname-input {
+      margin-top: 20px;
+      padding: 8px 12px;
+      font-size: 18px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      width: 200px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>WEN LAMBO</h1>
+  <img id="character" src="LAMBO1.png" alt="Character" />
+  <div id="nickname-display"></div>
+  <input id="nickname-input" placeholder="Enter your nickname" maxlength="12" />
+  <br />
+  <button id="tap-button">Tap Me!</button>
+  <div id="counter">Taps: 0</div>
+
+  <div id="leaderboard">
+    <h2>Leaderboard</h2>
+    <ol id="leaderboard-list"></ol>
+  </div>
+
+<script>
+  window.onload = function () {
+    let tapCount = 0;
+    const character = document.getElementById('character');
+    const counter = document.getElementById('counter');
+    const tapButton = document.getElementById('tap-button');
+    const nicknameInput = document.getElementById('nickname-input');
+    const nicknameDisplay = document.getElementById('nickname-display');
+    const leaderboardList = document.getElementById('leaderboard-list');
+
+    // Character stages with corrected Porky_1.png
+    const characterStages = [
+      { min: 0, max: 500, img: 'LAMBO1.png', bg: 'icy.png' },
+      { min: 501, max: 1000, img: 'LAMBO2.png', bg: 'icy2.png' },
+      { min: 1001, max: 5000, img: 'LAMBO3.png', bg: 'icyfam.png' },
+      { min: 5001, max: 8000, img: 'LAMBO4.png', bg: 'pigfam.png' },
+      { min: 8001, max: Infinity, img: 'LAMBO5.png', bg: 'welcomehome.png' },
+    ];
+
+    // Load tap sound (mp3)
+    const tapSound = new Audio('tap-sound.mp3');
+    tapSound.load();
+
+    // Local leaderboard stored in localStorage
+    let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
+
+    // Initialize nickname if stored
+    let nickname = localStorage.getItem('nickname') || '';
+    if (nickname) {
+      nicknameInput.style.display = 'none';
+      nicknameDisplay.innerText = `Player: ${nickname}`;
+    }
+
+    function updateStage() {
+      const stage = characterStages.find(s => tapCount >= s.min && tapCount <= s.max);
+      if (stage) {
+        character.src = stage.img;
+        character.onerror = () => alert(`Missing image: ${stage.img}`);
+        document.body.style.backgroundImage = `url('${stage.bg}')`;
+      }
+    }
+
+    function updateLeaderboard() {
+      // Add or update player score
+      const existingIndex = leaderboard.findIndex(e => e.name === nickname);
+      if (existingIndex >= 0) {
+        if (tapCount > leaderboard[existingIndex].score) {
+          leaderboard[existingIndex].score = tapCount;
+        }
+      } else {
+        leaderboard.push({ name: nickname, score: tapCount });
+      }
+      // Sort descending by score
+      leaderboard.sort((a,b) => b.score - a.score);
+      // Keep top 10 only
+      leaderboard = leaderboard.slice(0,10);
+      // Save to localStorage
+      localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
+      // Render
+      leaderboardList.innerHTML = leaderboard.map(e => `<li>${e.name}: ${e.score}</li>`).join('');
+    }
+
+    function handleTap() {
+      if (!nickname) {
+        alert('Please enter your nickname first!');
+        nicknameInput.focus();
+        return;
+      }
+      tapCount++;
+      counter.innerText = `Taps: ${tapCount}`;
+
+      // Play tap sound
+      tapSound.currentTime = 0;
+      tapSound.play();
+
+      // Bounce animation
+      character.classList.add('bounce');
+      setTimeout(() => character.classList.remove('bounce'), 300);
+
+      updateStage();
+      updateLeaderboard();
+    }
+
+    tapButton.addEventListener('click', handleTap);
+    character.addEventListener('click', handleTap);
+
+    nicknameInput.addEventListener('change', () => {
+      const val = nicknameInput.value.trim();
+      if (val.length > 0) {
+        nickname = val;
+        localStorage.setItem('nickname', nickname);
+        nicknameDisplay.innerText = `Player: ${nickname}`;
+        nicknameInput.style.display = 'none';
+        updateLeaderboard();
+      }
+    });
+
+    updateStage();
+    updateLeaderboard();
+  };
+</script>
+</body>
+</html>
