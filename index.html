@@ -3,71 +3,63 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Porky Penguins Tap to Earn</title>
+  <title>WEN LAMBO</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       text-align: center;
       margin: 0;
       padding: 20px;
-      background-size: cover;
-      background-position: center;
+      background: black;
       color: white;
-      text-shadow: 1px 1px 2px black;
       user-select: none;
     }
+
     h1 {
       margin-bottom: 10px;
     }
-    #character {
+
+    #car-container {
+      position: relative;
       width: 250px;
       height: auto;
-      cursor: pointer;
-      user-select: none;
-      transition: transform 0.2s ease;
       margin: 10px auto;
+    }
+
+    #character {
+      width: 100%;
+      height: auto;
       display: block;
     }
-    @keyframes bounce {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.2); }
+
+    #animation-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      display: none;
+      z-index: 2;
     }
-    .bounce {
-      animation: bounce 0.3s ease;
-    }
+
     #tap-button {
       margin-top: 20px;
       padding: 12px 30px;
       font-size: 20px;
       cursor: pointer;
       border: none;
-      background-color: #4caf50;
+      background-color: #ff4081;
       color: white;
       border-radius: 8px;
-      user-select: none;
     }
+
     #counter, #nickname-display {
       margin-top: 15px;
       font-size: 22px;
       font-weight: bold;
     }
-    #leaderboard {
-      margin-top: 30px;
-      max-width: 300px;
-      margin-left: auto;
-      margin-right: auto;
-      background: rgba(0,0,0,0.4);
-      border-radius: 8px;
-      padding: 10px;
-    }
-    #leaderboard h2 {
-      margin-bottom: 10px;
-    }
-    #leaderboard ol {
-      padding-left: 20px;
-      text-align: left;
-      color: #ffd700;
-    }
+
     input#nickname-input {
       margin-top: 20px;
       padding: 8px 12px;
@@ -77,11 +69,36 @@
       width: 200px;
       text-align: center;
     }
+
+    #leaderboard {
+      margin-top: 30px;
+      max-width: 300px;
+      margin-left: auto;
+      margin-right: auto;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 10px;
+    }
+
+    #leaderboard h2 {
+      margin-bottom: 10px;
+    }
+
+    #leaderboard ol {
+      padding-left: 20px;
+      text-align: left;
+      color: #ffd700;
+    }
   </style>
 </head>
 <body>
   <h1>WEN LAMBO</h1>
-  <img id="character" src="LAMBO1.png" alt="Character" />
+
+  <div id="car-container">
+    <img id="character" src="LAMBO1.png" alt="Car" />
+    <div id="animation-overlay"></div>
+  </div>
+
   <div id="nickname-display"></div>
   <input id="nickname-input" placeholder="Enter your nickname" maxlength="12" />
   <br />
@@ -93,107 +110,87 @@
     <ol id="leaderboard-list"></ol>
   </div>
 
-<script>
-  window.onload = function () {
-    let tapCount = 0;
-    const character = document.getElementById('character');
-    const counter = document.getElementById('counter');
-    const tapButton = document.getElementById('tap-button');
-    const nicknameInput = document.getElementById('nickname-input');
-    const nicknameDisplay = document.getElementById('nickname-display');
-    const leaderboardList = document.getElementById('leaderboard-list');
+  <script>
+    window.onload = function () {
+      let tapCount = 0;
+      const character = document.getElementById('character');
+      const counter = document.getElementById('counter');
+      const tapButton = document.getElementById('tap-button');
+      const nicknameInput = document.getElementById('nickname-input');
+      const nicknameDisplay = document.getElementById('nickname-display');
+      const leaderboardList = document.getElementById('leaderboard-list');
+      const animationOverlay = document.getElementById('animation-overlay');
 
-    // Character stages with corrected Porky_1.png
-    const characterStages = [
-  { min: 0, max: 100, img: 'LAMBO1.png' },
-  { min: 101, max: 200, img: 'LAMBO2.png' },
-  { min: 201, max: 300, img: 'LAMBO3.png' },
-  { min: 301, max: 400, img: 'LAMBO4.png' },
-  { min: 401, max: 500, img: 'LAMBO5.png' },
-];
+      // Keep LAMBO#.png as is, use separate GIFs for animation
+      const characterStages = [
+        { min: 0, max: 100, img: 'LAMBO1.png', anim: 'pinklambos.gif' },
+        { min: 101, max: 200, img: 'LAMBO2.png', anim: 'redcorvette.gif' },
+        { min: 201, max: 300, img: 'LAMBO3.png', anim: 'bluevette.gif' },
+        { min: 301, max: 400, img: 'LAMBO4.png', anim: 'blacklambo.gif' },
+        { min: 401, max: 500, img: 'LAMBO5.png', anim: 'pinkton.gif' }
+      ];
 
+      const tapSound = new Audio('car-honk.mp3');
+      tapSound.load();
 
-    // Load tap sound (mp3)
-    const tapSound = new Audio('car-honk.mp3');
-    tapSound.load();
+      let currentStageImg = '';
+      let nickname = localStorage.getItem('nickname') || '';
+      let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
 
-    // Local leaderboard stored in localStorage
-    let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
-
-    // Initialize nickname if stored
-    let nickname = localStorage.getItem('nickname') || '';
-    if (nickname) {
-      nicknameInput.style.display = 'none';
-      nicknameDisplay.innerText = `Player: ${nickname}`;
-    }
-
-    function updateStage() {
-  const stage = characterStages.find(s => tapCount >= s.min && tapCount <= s.max);
-  if (stage) {
-    character.src = stage.img;
-    character.onerror = () => alert(`Missing image: ${stage.img}`);
-  }
-}
-
-
-    function updateLeaderboard() {
-      // Add or update player score
-      const existingIndex = leaderboard.findIndex(e => e.name === nickname);
-      if (existingIndex >= 0) {
-        if (tapCount > leaderboard[existingIndex].score) {
-          leaderboard[existingIndex].score = tapCount;
-        }
-      } else {
-        leaderboard.push({ name: nickname, score: tapCount });
-      }
-      // Sort descending by score
-      leaderboard.sort((a,b) => b.score - a.score);
-      // Keep top 10 only
-      leaderboard = leaderboard.slice(0,10);
-      // Save to localStorage
-      localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
-      // Render
-      leaderboardList.innerHTML = leaderboard.map(e => `<li>${e.name}: ${e.score}</li>`).join('');
-    }
-
-    function handleTap() {
-      if (!nickname) {
-        alert('Please enter your nickname first!');
-        nicknameInput.focus();
-        return;
-      }
-      tapCount++;
-      counter.innerText = `Taps: ${tapCount}`;
-
-      // Play tap sound
-      tapSound.currentTime = 0;
-      tapSound.play();
-
-      // Bounce animation
-      character.classList.add('bounce');
-      setTimeout(() => character.classList.remove('bounce'), 300);
-
-      updateStage();
-      updateLeaderboard();
-    }
-
-    tapButton.addEventListener('click', handleTap);
-    character.addEventListener('click', handleTap);
-
-    nicknameInput.addEventListener('change', () => {
-      const val = nicknameInput.value.trim();
-      if (val.length > 0) {
-        nickname = val;
-        localStorage.setItem('nickname', nickname);
-        nicknameDisplay.innerText = `Player: ${nickname}`;
+      if (nickname) {
         nicknameInput.style.display = 'none';
+        nicknameDisplay.innerText = `Player: ${nickname}`;
+      }
+
+      function updateStage() {
+        const stage = characterStages.find(s => tapCount >= s.min && tapCount <= s.max);
+        if (stage && stage.img !== currentStageImg) {
+          currentStageImg = stage.img;
+          character.src = stage.img;
+          playAnimation(stage.anim);
+        }
+      }
+
+      function playAnimation(gifPath) {
+        animationOverlay.style.display = 'block';
+        animationOverlay.innerHTML = `<img src="${gifPath}" style="width: 100%; height: auto;" />`;
+
+        setTimeout(() => {
+          animationOverlay.style.display = 'none';
+          animationOverlay.innerHTML = '';
+        }, 2000);
+      }
+
+      function updateLeaderboard() {
+        const existingIndex = leaderboard.findIndex(e => e.name === nickname);
+        if (existingIndex >= 0) {
+          if (tapCount > leaderboard[existingIndex].score) {
+            leaderboard[existingIndex].score = tapCount;
+          }
+        } else {
+          leaderboard.push({ name: nickname, score: tapCount });
+        }
+        leaderboard.sort((a, b) => b.score - a.score);
+        leaderboard = leaderboard.slice(0, 10);
+        localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
+        leaderboardList.innerHTML = leaderboard.map(e => `<li>${e.name}: ${e.score}</li>`).join('');
+      }
+
+      function handleTap() {
+        if (!nickname) {
+          alert('Please enter your nickname first!');
+          nicknameInput.focus();
+          return;
+        }
+        tapCount++;
+        counter.innerText = `Taps: ${tapCount}`;
+        tapSound.currentTime = 0;
+        tapSound.play();
+        updateStage();
         updateLeaderboard();
       }
-    });
 
-    updateStage();
-    updateLeaderboard();
-  };
-</script>
-</body>
-</html>
+      tapButton.addEventListener('click', handleTap);
+      character.addEventListener('click', handleTap);
+
+      nicknameInput.addEventListener('change', () => {
