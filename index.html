@@ -105,12 +105,13 @@
 
     // Character stages with corrected Porky_1.png
     const characterStages = [
-      { min: 0, max: 50, img: 'LAMBO1.png', bg: 'icy.png' },
-      { min: 501, max: 100, img: 'LAMBO2.png', bg: 'icy2.png' },
-      { min: 1001, max: 150, img: 'LAMBO3.png', bg: 'icyfam.png' },
-      { min: 5001, max: 200, img: 'LAMBO4.png', bg: 'pigfam.png' },
-      { min: 250, max: 251, img: 'LAMBO5.png', bg: 'welcomehome.png' },
-    ];
+  { min: 0, max: 100, img: 'LAMBO1.png' },
+  { min: 101, max: 200, img: 'LAMBO2.png' },
+  { min: 201, max: 300, img: 'LAMBO3.png' },
+  { min: 301, max: 400, img: 'LAMBO4.png' },
+  { min: 401, max: 500, img: 'LAMBO5.png' },
+];
+
 
     // Load tap sound (mp3)
     const tapSound = new Audio('tap-sound.mp3');
@@ -127,13 +128,13 @@
     }
 
     function updateStage() {
-      const stage = characterStages.find(s => tapCount >= s.min && tapCount <= s.max);
-      if (stage) {
-        character.src = stage.img;
-        character.onerror = () => alert(`Missing image: ${stage.img}`);
-        document.body.style.backgroundImage = `url('${stage.bg}')`;
-      }
-    }
+  const stage = characterStages.find(s => tapCount >= s.min && tapCount <= s.max);
+  if (stage) {
+    character.src = stage.img;
+    character.onerror = () => alert(`Missing image: ${stage.img}`);
+  }
+}
+
 
     function updateLeaderboard() {
       // Add or update player score
