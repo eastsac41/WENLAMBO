@@ -194,3 +194,19 @@
       character.addEventListener('click', handleTap);
 
       nicknameInput.addEventListener('change', () => {
+        const val = nicknameInput.value.trim();
+        if (val.length > 0) {
+          nickname = val;
+          localStorage.setItem('nickname', nickname);
+          nicknameDisplay.innerText = `Player: ${nickname}`;
+          nicknameInput.style.display = 'none';
+          updateLeaderboard();
+        }
+      });
+
+      updateStage();
+      updateLeaderboard();
+    };
+  </script>
+</body>
+</html>
